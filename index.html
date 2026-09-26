@@ -1,928 +1,128 @@
 <!doctype html>
 <html lang="id">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Penilaian Ujian Mahasiswa — UTS & UAS</title>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
---bg:#f0f2f5;--card:#fff;--ink:#1a1a2e;--muted:#666;--line:#eee;
---field:#fff;--field-bd:#ddd;--hover:#f8f9ff;--accent:#00b4d8;--accent-d:#0096c7;
---th-bg:#1a1a2e;--th-fg:#fff;--btn-dark:#1a1a2e;--btn-dark-fg:#fff;--kbd:#1a1a2e;--kbd-fg:#fff;
---drop:#f8fdff;--found:#e8f8f5;--found-bd:#2a9d8f;
---good-bg:#e6f7ed;--good:#1b7f4b;--good-bd:#1b7f4b;
---mid-bg:#fff7e0;--mid:#8a5c00;--mid-bd:#d9a400;
---low-bg:#fdecec;--low:#c1121f;--low-bd:#e63946;
---mark:#ffe066;--shadow:0 2px 10px rgba(0,0,0,.08);
-}
-[data-theme="dark"]{
---bg:#12141c;--card:#1b1e2a;--ink:#edf0f7;--muted:#9aa3b8;--line:#2b3045;
---field:#141726;--field-bd:#3a4160;--hover:#232842;--accent:#22c3e6;--accent-d:#00b4d8;
---th-bg:#0d0f18;--th-fg:#edf0f7;--btn-dark:#e8ecf5;--btn-dark-fg:#12141c;--kbd:#e8ecf5;--kbd-fg:#12141c;
---drop:#16202b;--found:#123626;--found-bd:#2ea36b;
---good-bg:#123626;--good:#6fe3a1;--good-bd:#2ea36b;
---mid-bg:#3a2f0e;--mid:#ffd166;--mid-bd:#a07c1f;
---low-bg:#3d1518;--low:#ff9a9a;--low-bd:#c1121f;
---mark:#8a6d00;--shadow:0 2px 12px rgba(0,0,0,.45);
-}
-body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:20px;transition:background .25s,color .25s}
-.container{max-width:1100px;margin:0 auto}
-.topbar{display:flex;align-items:center;justify-content:center;gap:12px}
-h1{margin-bottom:6px;font-size:24px}
-#btnTheme{padding:8px 13px;font-size:16px}
-.subtitle{text-align:center;color:var(--muted);margin-bottom:14px;font-size:14px}
-.stepper{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
-.step{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;border:2px solid var(--line);background:var(--card);color:var(--muted);font-size:13px;font-weight:600;transition:.2s}
-.step i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--line);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
-.step.active{border-color:var(--accent);color:var(--ink)}
-.step.active i{background:var(--accent);color:#fff}
-.step.done{border-color:var(--good-bd);color:var(--ink)}
-.step.done i{background:var(--good-bd);color:#fff}
-.sep{width:22px;height:2px;background:var(--line);border-radius:2px}
-.card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:20px;margin-bottom:18px;transition:background .25s}
-.card h2{font-size:17px;margin-bottom:12px;border-left:4px solid var(--accent);padding-left:10px}
-.step-badge{display:inline-block;background:var(--btn-dark);color:var(--btn-dark-fg);font-size:12px;border-radius:20px;padding:2px 10px;margin-right:8px}
-.btn{padding:10px 18px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
-.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-d)}
-.btn-dark{background:var(--btn-dark);color:var(--btn-dark-fg)}.btn-dark:hover{filter:brightness(1.15)}
-.btn-green{background:#2a9d8f;color:#fff}.btn-green:hover{background:#21867a}
-.btn-red{background:#e63946;color:#fff}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.row{display:flex;gap:12px;flex-wrap:wrap}
-.col{flex:1;min-width:200px}
-label{font-size:13px;font-weight:600;display:block;margin:10px 0 4px}
-input[type=text],input[type=number],select{width:100%;padding:9px 10px;border:2px solid var(--field-bd);border-radius:8px;font-size:14px;background:var(--field);color:var(--ink)}
-input:focus,select:focus{border-color:var(--accent);outline:none}
-.hint{font-size:12px;color:var(--muted);margin-top:6px}
-.drop{border:2px dashed var(--accent);border-radius:10px;padding:22px;text-align:center;background:var(--drop);cursor:pointer;transition:.2s}
-.drop:hover{filter:brightness(.97)}
-.table-wrap{overflow:auto;border-radius:10px;border:1px solid var(--line);margin-top:12px;max-height:60vh}
-table{width:100%;border-collapse:collapse;min-width:640px}
-thead th{position:sticky;top:0;z-index:1}
-th{background:var(--th-bg);color:var(--th-fg);padding:10px 8px;font-size:13px}
-th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
-th.sortable:hover{filter:brightness(1.35)}
-.sort-arrow{font-size:11px}
-td{padding:8px;text-align:center;border-bottom:1px solid var(--line);font-size:14px}
-tbody tr{transition:background .15s}
-tbody tr:hover td{background:var(--hover)}
-.grade-input{width:75px;padding:6px;border:2px solid var(--field-bd);border-radius:6px;text-align:center;background:var(--field);color:var(--ink)}
-.grade-input.g-good{background:var(--good-bg);border-color:var(--good-bd);color:var(--good);font-weight:700}
-.grade-input.g-mid{background:var(--mid-bg);border-color:var(--mid-bd);color:var(--mid);font-weight:700}
-.grade-input.g-low{background:var(--low-bg);border-color:var(--low-bd);color:var(--low);font-weight:700}
-.student-found{background:var(--found);border:2px solid var(--found-bd);border-radius:10px;padding:14px;margin-top:12px}
-.student-found h3{margin-bottom:4px}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
-.badge-uts{background:#e0f7ff;color:#0077b6}
-.badge-uas{background:#fff3cd;color:#856404}
-.stat{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
-.stat div{flex:1;min-width:130px;background:var(--hover);border-radius:10px;padding:12px;text-align:center}
-.stat b{font-size:22px;display:block}
-#searchResults{margin-top:10px;max-height:220px;overflow-y:auto}
-.result-item{padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:var(--card)}
-.result-item:hover,.result-item.active{border-color:var(--accent);background:var(--hover)}
-.result-item.kb-active{border-color:var(--accent);background:var(--hover);box-shadow:0 0 0 2px var(--accent) inset}
-.result-item .kbd-hint{font-size:11px;color:var(--muted);border:1px solid var(--field-bd);border-radius:4px;padding:1px 6px;background:var(--field)}
-.result-item.kb-active .kbd-hint{background:var(--btn-dark);color:var(--btn-dark-fg);border-color:var(--btn-dark)}
-kbd{background:var(--kbd);color:var(--kbd-fg);border-radius:4px;padding:1px 7px;font-size:11px;font-family:inherit}
-mark{background:var(--mark);border-radius:3px;padding:0 2px;color:inherit}
-.info{font-size:13px;color:var(--muted);text-align:center;margin-top:12px}
-.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
-.toolbar select{width:auto;min-width:180px;margin:0}
-.save-state{margin-left:auto;font-size:12px;color:var(--good);font-weight:600}
-.pager{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:12px;flex-wrap:wrap}
-.pager .btn{padding:6px 14px}
-.pager select{width:auto;margin:0}
-@media(max-width:640px){h1{font-size:19px}.step span{display:none}.step{padding:6px 10px}}
-</style>
-</head>
-<body>
-<div class="container">
-<div class="topbar">
-<h1>📝 Penilaian Ujian Mahasiswa</h1>
-<button class="btn btn-dark" id="btnTheme" title="Mode gelap / terang">🌙</button>
-</div>
-<p class="subtitle">Upload Excel → Otomatis baca Nama &amp; NIM → Cari by Nama/NIM → Nilai UTS / UAS → Download Excel</p>
-<div class="stepper" id="stepper">
-<div class="step" data-s="1"><i>1</i><span>Upload</span></div><div class="sep"></div>
-<div class="step" data-s="2"><i>2</i><span>Pemetaan</span></div><div class="sep"></div>
-<div class="step" data-s="3"><i>3</i><span>Nilai</span></div><div class="sep"></div>
-<div class="step" data-s="4"><i>4</i><span>Download</span></div>
-</div>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Dashboard Tools Penilaian</title>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="container">
+			<div class="topbar">
+				<h1>🧰 Dashboard Tools Penilaian</h1>
+				<button class="btn btn-dark" id="btnTheme" title="Mode gelap / terang">
+					🌙
+				</button>
+			</div>
+			<p class="subtitle">
+				Kumpulan tool penilaian — data tersimpan otomatis di browser
+				(localStorage), bisa dibuka kapan saja.
+			</p>
 
-<!-- STEP 1 -->
-<div class="card">
-<h2><span class="step-badge">1</span>Upload File Excel</h2>
-<div class="drop" id="dropZone">
-<p><b>Klik / drag file ke sini</b> (.xlsx, .xls, .csv)</p>
-<input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" />
-</div>
-<button class="btn btn-red" id="btnRemoveFile" style="width:100%;margin-top:12px">🗑 Hapus File Upload</button>
-<p class="hint" id="fileInfo">Belum ada file. Data tersimpan otomatis di browser (localStorage).</p>
-</div>
+			<div class="tool-grid">
+				<div class="card tool-card">
+					<div class="tool-icon">📝</div>
+					<h2>Penilaian Nilai Mahasiswa</h2>
+					<p class="tool-desc">
+						Upload Excel SIAP → petakan kolom Nama, NIM &amp; 3 komponen nilai →
+						cari mahasiswa by Nama/NIM → input nilai → download Excel dengan
+						format asli tetap terjaga.
+					</p>
+					<ul class="tool-feats">
+						<li>Upload .xlsx / .xls / .csv (drag &amp; drop)</li>
+						<li>Deteksi header &amp; footer otomatis</li>
+						<li>Entri cepat via keyboard (/, ↑↓, Enter)</li>
+						<li>Undo, sortir, filter, pagination</li>
+					</ul>
+					<p class="hint" id="statPenilaian">Belum ada data tersimpan.</p>
+					<a class="btn btn-primary tool-open" href="penilaian.html">
+						Buka Tool →
+					</a>
+				</div>
 
-<!-- STEP 2 -->
-<div class="card" id="mapCard" style="display:none">
-<h2><span class="step-badge">2</span>Pemetaan Kolom (karena format Excel bisa beda)</h2>
-<p class="hint" id="headerInfo">Mendeteksi baris header otomatis (melewati info Mata Kuliah / Tahun Ajaran di atas).</p>
-<div class="row">
-<div class="col"><label>Baris header (judul kolom)</label><select id="headerRowSel"></select>
-<p class="hint" id="headerPreview"></p></div>
-</div>
-<div class="row">
-<div class="col"><label>Kolom Nama</label><select id="mapNama"></select></div>
-<div class="col"><label>Kolom NIM</label><select id="mapNim"></select></div>
-<div class="col"><label>Kolom UTS (Midterms)</label><select id="mapUts"></select></div>
-<div class="col"><label>Kolom UAS (Finals)</label><select id="mapUas"></select></div>
-</div>
-<button class="btn btn-primary" id="btnApplyMap" style="margin-top:14px">Terapkan Pemetaan ✓</button>
-<p class="hint" id="mapInfo"></p>
-</div>
+				<div class="card tool-card">
+					<div class="tool-icon">📊</div>
+					<h2>Analisis Penilaian</h2>
+					<p class="tool-desc">
+						Upload Excel nilai → grafik batang nilai akhir (skor angka atau
+						grade huruf) + tabel distribusi grade otomatis → download Excel.
+					</p>
+					<ul class="tool-feats">
+						<li>Upload .xlsx / .xls / .csv (otomatis terbaca)</li>
+						<li>Grafik: skor angka atau grade huruf</li>
+						<li>Tabel distribusi grade ala Sheet 2</li>
+						<li>Export Excel (Rekap + Distribusi)</li>
+					</ul>
+					<p class="hint" id="statObe">Belum ada data tersimpan.</p>
+					<a class="btn btn-primary tool-open" href="analisis.html">
+						Buka Tool →
+					</a>
+				</div>
 
-<!-- STEP 3 -->
-<div class="card" id="gradeCard" style="display:none">
-<h2><span class="step-badge">3</span>Cari &amp; Nilai Mahasiswa</h2>
-<div class="row">
-<div class="col">
-<label>Cari Nama / NIM <span class="hint" style="font-weight:400">(tekan <kbd>/</kbd> untuk fokus)</span></label>
-<input type="text" id="searchInput" placeholder="cth: Abhista / 24060124130058" autocomplete="off" />
-<p class="hint"><kbd>↑</kbd><kbd>↓</kbd> navigasi • <kbd>Enter</kbd> pilih • <kbd>Esc</kbd> bersihkan</p>
-<div id="searchResults"></div>
-</div>
-<div class="col">
-<label>Tipe Nilai</label>
-<select id="gradeType"><option value="uts">UTS (Midterms)</option><option value="uas">UAS (Finals)</option></select>
-<label>Skor (0–100)</label>
-<input type="number" id="gradeScore" min="0" max="100" step="any" placeholder="cth: 85" />
-<button class="btn btn-primary" id="btnSaveGrade" style="width:100%;margin-top:12px">💾 Simpan Nilai</button>
-<p class="hint" id="selectedInfo">Belum ada mahasiswa dipilih.</p>
-</div>
-</div>
-<div class="student-found" id="foundBox" style="display:none">
-<h3 id="foundName">-</h3>
-<p id="foundNim" style="color:#555;font-size:14px">-</p>
-<p style="margin-top:8px"><span class="badge badge-uts" id="foundUts">UTS: -</span> <span class="badge badge-uas" id="foundUas">UAS: -</span></p>
-</div>
-<div class="stat">
-<div><b id="statTotal">0</b><span>Mahasiswa</span></div>
-<div><b id="statUts">0</b><span>Sudah ada UTS</span></div>
-<div><b id="statUas">0</b><span>Sudah ada UAS</span></div>
-</div>
-</div>
+				<div class="card tool-card tool-soon">
+					<div class="tool-icon">➕</div>
+					<h2>Tool Berikutnya</h2>
+					<p class="tool-desc">
+						Slot untuk tool baru. Duplikat salah satu file
+						<code>.html</code>
+						sebagai titik awal, lalu tambahkan kartu baru di file ini.
+					</p>
+				</div>
+			</div>
 
-<!-- STEP 4 -->
-<div class="card" id="tableCard" style="display:none">
-<h2><span class="step-badge">4</span>Data &amp; Simpan ke Excel</h2>
-<div class="row">
-<div class="col"><button class="btn btn-green" id="btnExport" style="width:100%">📥 Download Excel (hasil nilai)</button></div>
-<div class="col"><button class="btn btn-red" id="btnClearUts" style="width:100%" title="Kosongkan semua nilai di kolom UTS">🗑 Hapus Nilai UTS</button></div>
-<div class="col"><button class="btn btn-red" id="btnClearUas" style="width:100%" title="Kosongkan semua nilai di kolom UAS">🗑 Hapus Nilai UAS</button></div>
-</div>
-<div class="toolbar">
-<select id="tblFilter" title="Filter baris">
-<option value="all">Filter: Semua</option>
-<option value="need-uts">Belum ada UTS</option>
-<option value="need-uas">Belum ada UAS</option>
-<option value="todo">Belum lengkap</option>
-<option value="done">Lengkap (UTS+UAS)</option>
-</select>
-<button class="btn btn-dark" id="btnUndo" disabled title="Belum ada perubahan">↩ Urungkan</button>
-<span class="save-state" id="saveState"></span>
-</div>
-<p class="hint">Semua perubahan bisa dibatalkan via tombol / <kbd>Ctrl</kbd>+<kbd>Z</kbd> • klik judul kolom untuk sortir.</p>
-<div class="table-wrap">
-<table>
-<thead><tr><th>No</th><th class="sortable" data-sort="name">Nama <span class="sort-arrow"></span></th><th class="sortable" data-sort="nim">NIM <span class="sort-arrow"></span></th><th class="sortable" data-sort="uts">UTS <span class="sort-arrow"></span></th><th class="sortable" data-sort="uas">UAS <span class="sort-arrow"></span></th><th>Aksi</th></tr></thead>
-<tbody id="tbody"></tbody>
-</table>
-</div>
-<div class="pager">
-<button class="btn btn-dark" id="pgPrev">‹</button>
-<span class="hint" id="pgInfo"></span>
-<button class="btn btn-dark" id="pgNext">›</button>
-<select id="pgSize" title="Baris per halaman"><option>10</option><option selected>20</option><option>50</option><option>100</option></select>
-</div>
-<p class="info">Nilai bisa diedit langsung di tabel — otomatis tersimpan. Klik “Pilih” untuk memuat ke form penilaian di atas.<br>Download mempertahankan font, format angka (90,00), lebar kolom &amp; proteksi sheet dari file asli.</p>
-</div>
-</div>
+			<p class="info">
+				Data tersimpan lokal di browser ini saja — tidak dikirim ke mana pun.
+				Hapus cache/browser akan menghilangkan data tersimpan.
+			</p>
+		</div>
 
-<script>
-let fullAoa = [];        // seluruh isi sheet asli
-let headerRowIdx = 0;    // index baris header di fullAoa
-let metaRows = [];       // baris info di atas header (Mata Kuliah, dll) — dipertahankan saat export
-let rawHeader = [];      // header asli excel (baris judul kolom yang benar)
-let rawRows = [];        // baris data asli (array of arrays)
-let students = [];       // [{name,nim,uts,uas,row}]
-let selectedIdx = -1;
-let fileName = "";
-let origWb = null;         // workbook asli (untuk pertahankan lebar kolom & merge saat export)
-let origSheetName = "";
-let origCols = null;       // salinan ws['!cols']
-let origMerges = null;     // salinan ws['!merges']
-let origBuffer = null;     // file asli utuh (untuk export via ExcelJS: preserve font/format/proteksi)
-let origB64 = null;        // versi base64 origBuffer untuk localStorage
-let rowMap = [];           // rawRows[i] -> index baris di fullAoa (untuk tulis balik tepat ke sel asli)
-let addedCols = {};        // judul kolom baru -> index kolom (dibuat saat export bedah)
-let tbl = {sortKey:null, sortDir:1, filter:"all", page:0, perPage:20}; // state tabel canggih
-let undoStack = [];        // [{label, changes:[{i,t,prev,next}]}]
+		<script>
+			// Tema (sama seperti tool lain)
+			(function initTheme() {
+				let t = "light";
+				try {
+					t = localStorage.getItem("nilai-mhs-theme") || "light";
+				} catch (_) {}
+				document.documentElement.dataset.theme = t;
+				const b = document.getElementById("btnTheme");
+				if (b) b.textContent = t === "dark" ? "☀️" : "🌙";
+			})();
+			document.getElementById("btnTheme").onclick = () => {
+				const t =
+					document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+				document.documentElement.dataset.theme = t;
+				try {
+					localStorage.setItem("nilai-mhs-theme", t);
+				} catch (_) {}
+				document.getElementById("btnTheme").textContent =
+					t === "dark" ? "☀️" : "🌙";
+			};
 
-const $ = id => document.getElementById(id);
-
-// ---------- Upload ----------
-const dropZone = $("dropZone"), fileInput = $("fileInput");
-dropZone.onclick = () => fileInput.click();
-dropZone.ondragover = e => { e.preventDefault(); dropZone.style.background="#e0f7ff"; };
-dropZone.ondragleave = () => dropZone.style.background="#f8fdff";
-dropZone.ondrop = e => { e.preventDefault(); dropZone.style.background="#f8fdff"; if(e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); };
-fileInput.onchange = e => { if(e.target.files[0]) readFile(e.target.files[0]); };
-
-function readFile(file){
-  fileName = file.name;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb = XLSX.read(e.target.result, {type:"array", cellStyles:true});
-      const sheetName = wb.SheetNames[0];
-      const ws = wb.Sheets[sheetName];
-      const aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
-      if(aoa.length < 2){ alert("Excel kosong / tidak ada data."); return; }
-      // simpan workbook asli agar lebar kolom & merge bisa dipertahankan saat download
-      origWb = wb; origSheetName = sheetName;
-      origCols = ws["!cols"] ? JSON.parse(JSON.stringify(ws["!cols"])) : null;
-      origMerges = ws["!merges"] ? JSON.parse(JSON.stringify(ws["!merges"])) : null;
-      // simpan file mentah untuk export presisi via ExcelJS (font, format angka, proteksi tetap)
-      origBuffer = e.target.result;
-      try{ origB64 = bufToB64(origBuffer); }catch(_){ origB64 = null; }
-      loadRaw(aoa);
-      $("fileInfo").textContent = "File: " + fileName + " | Sheet: " + sheetName + " | " + rawRows.length + " baris.";
-    } catch(err){ alert("Gagal membaca file: " + err.message); }
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function loadRaw(aoa){
-  fullAoa = aoa;
-  headerRowIdx = detectHeaderRow(aoa);
-  applyHeaderRow(headerRowIdx);
-  buildHeaderRowSel();
-  buildMappingUI();
-  $("mapCard").style.display = "block";
-  updateStepper();
-}
-
-// Cari baris yang paling mirip header: harus mengandung NIM + Nama dalam satu baris.
-// Ini melewati baris info seperti "Mata Kuliah : ...", "Tahun Ajaran : ...", dll.
-function detectHeaderRow(aoa){
-  const limit = Math.min(aoa.length, 20);
-  let best = 0, bestScore = -1;
-  for(let r=0;r<limit;r++){
-    const cells = aoa[r].map(c => String(c??"").toLowerCase().trim());
-    const joined = cells.join(" | ");
-    let score = 0;
-    const hasNim = cells.some(c => c==="nim" || c.includes("nim"));
-    const hasNama = cells.some(c => c.includes("nama mahasiswa") || c==="nama" || (c.includes("nama") && c.length<30));
-    if(hasNim) score += 10;
-    if(hasNama) score += 10;
-    if(hasNim && hasNama) score += 20;
-    if(cells.some(c=>c.includes("uts"))) score += 5;
-    if(cells.some(c=>c.includes("uas"))) score += 5;
-    // baris info seperti "mata kuliah", "tahun ajaran", "semester :" harus dikurangi nilainya
-    if(joined.includes("mata kuliah") && !hasNim) score -= 20;
-    if(joined.includes("tahun ajaran") && !hasNim) score -= 20;
-    if(cells.filter(c=>c!=="").length < 2) score -= 10; // baris kosong
-    if(score > bestScore){ bestScore = score; best = r; }
-  }
-  // jika tidak ada yang meyakinkan (skor rendah), fallback ke baris 0
-  if(bestScore < 10) return 0;
-  return best;
-}
-
-function applyHeaderRow(idx){
-  headerRowIdx = idx;
-  rawHeader = (fullAoa[idx]||[]).map(h => String(h??"").trim());
-  metaRows = fullAoa.slice(0, idx);
-  rawRows = []; rowMap = []; addedCols = {};
-  fullAoa.slice(idx+1).forEach((r,k)=>{
-    if(r.some(c => String(c??"").trim() !== "")){ rowMap.push(idx+1+k); rawRows.push(r); }
-  });
-  const prev = $("headerPreview");
-  if(prev) prev.textContent = "Baris " + (idx+1) + " dipakai sebagai header: " + rawHeader.filter(Boolean).slice(0,6).join(" | ") + (rawHeader.filter(Boolean).length>6 ? " ..." : "");
-}
-
-function buildHeaderRowSel(){
-  const sel = $("headerRowSel");
-  sel.innerHTML = "";
-  const limit = Math.min(fullAoa.length, 20);
-  for(let r=0;r<limit;r++){
-    const o = document.createElement("option");
-    o.value = r;
-    const preview = fullAoa[r].map(c=>String(c??"").trim()).filter(Boolean).slice(0,3).join(" | ").slice(0,60);
-    o.textContent = "Baris " + (r+1) + (preview ? " — " + preview : " — (kosong)");
-    sel.appendChild(o);
-  }
-  sel.value = headerRowIdx;
-  sel.onchange = () => {
-    applyHeaderRow(parseInt(sel.value));
-    buildMappingUI();
-  };
-}
-
-// ---------- Mapping ----------
-function guessIndex(patterns){
-  for(let i=0;i<rawHeader.length;i++){
-    const h = rawHeader[i].toLowerCase();
-    if(patterns.some(p => h.includes(p))) return i;
-  }
-  return -1;
-}
-
-function fillSelect(sel, includeNew){
-  sel.innerHTML = "";
-  rawHeader.forEach((h,i)=>{
-    const o = document.createElement("option");
-    o.value = i;
-    const label = (h || ("(Kolom kosong " + (i+1) + ")"));
-    // tampilkan nama lengkap via title, potong kalau terlalu panjang
-    o.textContent = "Kol " + (i+1) + ": " + (label.length>45 ? label.slice(0,45)+"…" : label);
-    o.title = label;
-    sel.appendChild(o);
-  });
-  if(includeNew){
-    const o = document.createElement("option");
-    o.value = "__new__"; o.textContent = "➕ Buat kolom baru";
-    sel.appendChild(o);
-  }
-}
-
-function buildMappingUI(){
-  fillSelect($("mapNama"), false); fillSelect($("mapNim"), false);
-  fillSelect($("mapUts"), true); fillSelect($("mapUas"), true);
-  const iNama = guessIndex(["nama mahasiswa","nama","name"]);
-  const iNim  = guessIndex(["nim"]);
-  const iUts  = guessIndex(["nilai uts","uts"]);
-  const iUas  = guessIndex(["nilai uas","uas"]);
-  if(iNama>=0) $("mapNama").value = iNama;
-  if(iNim>=0) $("mapNim").value = iNim;
-  $("mapUts").value = iUts>=0 ? iUts : "__new__";
-  $("mapUas").value = iUas>=0 ? iUas : "__new__";
-}
-
-$("btnApplyMap").onclick = () => {
-  const cNama = parseInt($("mapNama").value);
-  const cNim  = parseInt($("mapNim").value);
-  const cUts  = $("mapUts").value === "__new__" ? -1 : parseInt($("mapUts").value);
-  const cUas  = $("mapUas").value === "__new__" ? -1 : parseInt($("mapUas").value);
-  if(cNama===cNim){ alert("Kolom Nama dan NIM tidak boleh sama!"); return; }
-  students = rawRows.map((r,idx)=>({
-    name: String(r[cNama] ?? "").trim(),
-    nim: String(r[cNim] ?? "").trim(),
-    uts: cUts>=0 ? parseScore(r[cUts]) : null,
-    uas: cUas>=0 ? parseScore(r[cUas]) : null,
-    row: idx, r: rowMap[idx], cUts, cUas
-  })).filter(s => s.name || s.nim);
-  if(!students.length){ alert("Tidak ada data mahasiswa ditemukan."); return; }
-  // Abaikan baris kaki/footer (tanda tangan, kode verifikasi, dsb): NIM asli selalu mengandung deret angka.
-  // Hanya aktif bila ada ≥1 baris ber-NIM valid, supaya tidak menghapus semua saat mapping salah pilih.
-  const valid = students.filter(s => /\d{5,}/.test(s.nim));
-  let dropped = 0;
-  if(valid.length && valid.length < students.length){ dropped = students.length - valid.length; students = valid; }
-  const mi = $("mapInfo");
-  if(mi) mi.textContent = students.length + " mahasiswa terdeteksi" + (dropped ? " • " + dropped + " baris non-mahasiswa (footer/kode) diabaikan" : "") + ".";
-  tbl.page = 0; undoStack = []; updateUndoBtn();
-  persist();
-  renderAll();
-  $("gradeCard").style.display="block";
-  $("tableCard").style.display="block";
-  $("gradeCard").scrollIntoView({behavior:"smooth"});
-};
-
-function parseScore(v){
-  if(v===""||v==null) return null;
-  const n = parseFloat(String(v).replace(",","."));
-  return isNaN(n) ? null : n;
-}
-
-// ---------- Search + grade (keyboard friendly, tanpa mouse) ----------
-let searchList = [];   // hasil filter terakhir [{...s,i}]
-let kbIdx = -1;        // index aktif di searchList untuk navigasi keyboard
-
-$("searchInput").addEventListener("input", updateSearch);
-$("searchInput").addEventListener("keydown", e => {
-  if(e.key === "ArrowDown"){
-    e.preventDefault();
-    if(searchList.length) { kbIdx = Math.min(kbIdx+1, searchList.length-1); paintKb(); }
-  } else if(e.key === "ArrowUp"){
-    e.preventDefault();
-    if(searchList.length) { kbIdx = Math.max(kbIdx-1, 0); paintKb(); }
-  } else if(e.key === "Enter"){
-    e.preventDefault();
-    if(searchList.length){
-      const pick = kbIdx>=0 ? searchList[kbIdx] : searchList[0];
-      selectStudent(pick.i);
-      // langsung lompat ke input skor → bisa ketik nilai + Enter, tanpa mouse sama sekali
-      $("gradeScore").focus();
-    }
-  } else if(e.key === "Escape"){
-    e.target.value = ""; updateSearch();
-  }
-});
-
-// Enter di kolom skor = simpan. Setelah simpan, fokus balik ke pencarian untuk input berikutnya.
-$("gradeScore").addEventListener("keydown", e => {
-  if(e.key === "Enter"){ e.preventDefault(); $("btnSaveGrade").click(); }
-});
-
-// Shortcut global: "/" atau Ctrl+K fokus ke pencarian (kecuali sedang mengetik di input lain)
-document.addEventListener("keydown", e => {
-  const tag = (document.activeElement?.tagName||"").toLowerCase();
-  const typing = tag==="input"||tag==="select"||tag==="textarea";
-  if((e.key==="/" && !typing) || ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k")){
-    e.preventDefault();
-    $("gradeCard").style.display!=="none" && $("searchInput").focus();
-  }
-});
-
-function updateSearch(){
-  const q = $("searchInput").value.trim().toLowerCase();
-  const box = $("searchResults"); box.innerHTML = "";
-  searchList = []; kbIdx = -1;
-  if(!q) return;
-  searchList = students.map((s,i)=>({...s,i}))
-    .filter(s => s.name.toLowerCase().includes(q) || s.nim.toLowerCase().includes(q))
-    .slice(0,20);
-  if(!searchList.length){ box.innerHTML = "<p class='hint'>Tidak ditemukan.</p>"; return; }
-  kbIdx = 0; // default: hasil pertama langsung aktif → tinggal Enter
-  searchList.forEach((s,pos)=>{
-    const d = document.createElement("div");
-    d.className = "result-item" + (s.i===selectedIdx?" active":"") + (pos===kbIdx?" kb-active":"");
-    d.innerHTML = "<span><b>"+hi(s.name,q)+"</b><br><small>"+hi(s.nim,q)+"</small></span><span class='kbd-hint'>"+(pos===0?"Enter ⏎":"↑↓+Enter")+"</span>";
-    d.onclick = ()=> { selectStudent(s.i); };
-    d.onmousemove = ()=> { if(kbIdx!==pos){ kbIdx=pos; paintKb(); } };
-    box.appendChild(d);
-  });
-}
-
-// Tandai cocoknya pencarian dengan <mark> (q sudah lowercase)
-function hi(text, q){
-  const e = escapeHtml(text||"-");
-  if(!q) return e;
-  const i = e.toLowerCase().indexOf(q);
-  if(i<0) return e;
-  return e.slice(0,i)+"<mark>"+e.slice(i,i+q.length)+"</mark>"+e.slice(i+q.length);
-}
-
-function paintKb(){
-  const box = $("searchResults");
-  [...box.children].forEach((el,pos)=>{
-    el.classList.toggle("kb-active", pos===kbIdx);
-    const hint = el.querySelector(".kbd-hint");
-    if(hint) hint.textContent = pos===kbIdx ? "Enter ⏎" : "↑↓+Enter";
-  });
-  // scroll item aktif ke dalam view
-  const active = box.children[kbIdx];
-  if(active) active.scrollIntoView({block:"nearest"});
-}
-
-function selectStudent(i){
-  selectedIdx = i;
-  const s = students[i];
-  $("selectedInfo").textContent = "Dipilih: " + s.name + " (" + s.nim + ")";
-  $("foundBox").style.display="block";
-  $("foundName").textContent = s.name || "-";
-  $("foundNim").textContent = "NIM: " + (s.nim || "-");
-  $("foundUts").textContent = "UTS: " + (s.uts==null?"-":s.uts);
-  $("foundUas").textContent = "UAS: " + (s.uas==null?"-":s.uas);
-  // lompat ke halaman tabel yang memuat baris ini
-  const pos = tableView().indexOf(i);
-  if(pos>=0) tbl.page = Math.floor(pos/tbl.perPage);
-  renderTable(); // refresh highlight
-  paintKb();
-}
-
-function saveGrade(){
-  if(selectedIdx<0){ alert("Pilih dulu mahasiswa (ketik Nama/NIM, lalu tekan Enter)."); $("searchInput").focus(); return; }
-  const type = $("gradeType").value;
-  const val = parseFloat(String($("gradeScore").value).replace(",","."));
-  if(isNaN(val)||val<0||val>100){ alert("Skor harus angka 0–100."); $("gradeScore").focus(); return; }
-  pushUndo("nilai " + type.toUpperCase() + " " + (students[selectedIdx].name||students[selectedIdx].nim),
-    [{i:selectedIdx, t:type, prev:students[selectedIdx][type], next:val}]);
-  students[selectedIdx][type] = val;
-  $("gradeScore").value = "";
-  persist(); renderAll();
-  selectStudent(selectedIdx);
-  updateSearch(); // refresh daftar (skor berubah)
-  // QoL: fokus balik ke pencarian + blok teks → langsung ketik NIM berikutnya
-  $("searchInput").focus();
-  $("searchInput").select();
-}
-$("btnSaveGrade").onclick = saveGrade;
-
-// Alt+U = UTS, Alt+A = UAS (ganti tipe nilai tanpa mouse)
-document.addEventListener("keydown", e => {
-  if(e.altKey && (e.key.toLowerCase()==="u" || e.key.toLowerCase()==="a")){
-    e.preventDefault();
-    $("gradeType").value = e.key.toLowerCase()==="u" ? "uts" : "uas";
-  }
-});
-
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-
-// ---------- Render + stepper progres ----------
-function renderAll(){ renderTable(); renderStats(); updateStepper(); }
-
-function setStep(n, st){
-  const el = document.querySelector('.step[data-s="'+n+'"]');
-  if(el) el.className = "step" + (st ? " " + st : "");
-}
-function updateStepper(){
-  const hasFile = fullAoa.length>0;
-  const hasStudents = students.length>0;
-  const allDone = hasStudents && students.every(s=>s.uts!=null && s.uas!=null);
-  setStep(1, hasFile?"done":"active");
-  setStep(2, hasStudents?"done":(hasFile?"active":""));
-  setStep(3, allDone?"done":(hasStudents?"active":""));
-  setStep(4, hasStudents?(allDone?"done":"active"):"");
-}
-
-// ---------- Undo (tumpuk perubahan nilai) ----------
-function pushUndo(label, changes){
-  if(!changes || !changes.length) return;
-  undoStack.push({label, changes});
-  if(undoStack.length>100) undoStack.shift();
-  updateUndoBtn();
-}
-function updateUndoBtn(){
-  const b = $("btnUndo"); if(!b) return;
-  b.disabled = !undoStack.length;
-  b.textContent = undoStack.length ? ("↩ Urungkan ("+undoStack.length+")") : "↩ Urungkan";
-  b.title = undoStack.length ? ("Terakhir: "+undoStack[undoStack.length-1].label+" • Ctrl+Z") : "Belum ada perubahan";
-}
-function doUndo(){
-  const e = undoStack.pop();
-  if(!e) return;
-  e.changes.forEach(c=>{ students[c.i][c.t] = c.prev; });
-  persist(); renderAll();
-  if(selectedIdx>=0) selectStudent(selectedIdx);
-  updateSearch(); updateUndoBtn();
-  const ss = $("saveState");
-  if(ss) ss.textContent = "↩ Dibatalkan: " + e.label;
-}
-$("btnUndo").onclick = doUndo;
-// Ctrl+Z global — kecuali sedang mengetik di input/textarea (biar undo teks browser tetap jalan)
-document.addEventListener("keydown", e=>{
-  if((e.ctrlKey||e.metaKey) && !e.shiftKey && e.key.toLowerCase()==="z"){
-    const tag = (document.activeElement?.tagName||"").toLowerCase();
-    if(tag==="input" || tag==="textarea") return;
-    e.preventDefault(); doUndo();
-  }
-});
-
-// ---------- Tema gelap / terang ----------
-function initTheme(){
-  let t = "light";
-  try{ t = localStorage.getItem("nilai-mhs-theme") || "light"; }catch(_){}
-  document.documentElement.dataset.theme = t;
-  const b = $("btnTheme"); if(b) b.textContent = t==="dark" ? "☀️" : "🌙";
-}
-$("btnTheme").onclick = ()=>{
-  const t = document.documentElement.dataset.theme==="dark" ? "light" : "dark";
-  document.documentElement.dataset.theme = t;
-  try{ localStorage.setItem("nilai-mhs-theme", t); }catch(_){}
-  $("btnTheme").textContent = t==="dark" ? "☀️" : "🌙";
-};
-initTheme();
-
-function renderStats(){
-  $("statTotal").textContent = students.length;
-  $("statUts").textContent = students.filter(s=>s.uts!=null).length;
-  $("statUas").textContent = students.filter(s=>s.uas!=null).length;
-}
-
-// ---------- Tabel canggih: filter + sortir + pagination + badge warna ----------
-function tableView(){
-  let idx = students.map((_,i)=>i);
-  const f = tbl.filter;
-  if(f==="need-uts") idx = idx.filter(i=>students[i].uts==null);
-  else if(f==="need-uas") idx = idx.filter(i=>students[i].uas==null);
-  else if(f==="todo") idx = idx.filter(i=>students[i].uts==null || students[i].uas==null);
-  else if(f==="done") idx = idx.filter(i=>students[i].uts!=null && students[i].uas!=null);
-  if(tbl.sortKey){
-    const k = tbl.sortKey, d = tbl.sortDir;
-    const val = i => k==="name" ? (students[i].name||"").toLowerCase()
-      : k==="nim" ? String(students[i].nim||"") : students[i][k];
-    idx.sort((a,b)=>{
-      const va = val(a), vb = val(b);
-      if(va==null && vb==null) return 0;
-      if(va==null) return 1;
-      if(vb==null) return -1;
-      if(va<vb) return -d;
-      if(va>vb) return d;
-      return 0;
-    });
-  }
-  return idx;
-}
-
-// Warna nilai: ≥80 hijau, 60–79 kuning, <60 merah (batas umum kelulusan)
-function gradeClass(v){
-  if(v==null || v==="") return "";
-  if(v>=80) return "g-good";
-  if(v>=60) return "g-mid";
-  return "g-low";
-}
-
-function renderTable(){
-  const tb = $("tbody"); tb.innerHTML = "";
-  const view = tableView();
-  const pages = Math.max(1, Math.ceil(view.length / tbl.perPage));
-  if(tbl.page >= pages) tbl.page = pages-1;
-  if(tbl.page < 0) tbl.page = 0;
-  const start = tbl.page * tbl.perPage;
-  const rows = view.slice(start, start + tbl.perPage);
-  rows.forEach((i,pos)=>{
-    const s = students[i];
-    const tr = document.createElement("tr");
-    if(i===selectedIdx) tr.style.background = "var(--hover)";
-    tr.innerHTML =
-      "<td>"+(start+pos+1)+"</td>"+
-      "<td style='text-align:left'>"+escapeHtml(s.name)+"</td>"+
-      "<td>"+escapeHtml(s.nim)+"</td>"+
-      "<td><input class='grade-input "+gradeClass(s.uts)+"' type='number' min='0' max='100' value='"+(s.uts==null?"":s.uts)+"' data-i='"+i+"' data-t='uts'></td>"+
-      "<td><input class='grade-input "+gradeClass(s.uas)+"' type='number' min='0' max='100' value='"+(s.uas==null?"":s.uas)+"' data-i='"+i+"' data-t='uas'></td>"+
-      "<td><button class='btn btn-dark' style='padding:5px 12px;font-size:12px' data-pick='"+i+"'>Pilih</button></td>";
-    tb.appendChild(tr);
-  });
-  $("pgInfo").textContent = view.length
-    ? ("Baris " + (start+1) + "–" + (start+rows.length) + " dari " + view.length + " • Hal " + (tbl.page+1) + "/" + pages)
-    : "Tidak ada baris (coba ubah filter).";
-  $("pgPrev").disabled = tbl.page<=0;
-  $("pgNext").disabled = tbl.page>=pages-1;
-  document.querySelectorAll("th.sortable").forEach(th=>{
-    const a = th.querySelector(".sort-arrow");
-    if(a) a.textContent = th.dataset.sort===tbl.sortKey ? (tbl.sortDir===1?"▲":"▼") : "";
-  });
-  tb.querySelectorAll(".grade-input").forEach(inp=>{
-    inp.onchange = e => {
-      const i = +e.target.dataset.i, t = e.target.dataset.t;
-      const prev = students[i][t];
-      const v = e.target.value.trim()==="" ? null : parseFloat(e.target.value);
-      if(v!=null && (isNaN(v)||v<0||v>100)){ alert("Skor 0–100 saja."); renderTable(); return; }
-      if(prev===v){ renderTable(); return; }
-      pushUndo("edit " + t.toUpperCase() + " " + (students[i].name||students[i].nim), [{i, t, prev, next:v}]);
-      students[i][t] = v; persist(); renderStats(); updateStepper();
-      if(i===selectedIdx) selectStudent(i); else renderTable();
-    };
-  });
-  tb.querySelectorAll("[data-pick]").forEach(b=> b.onclick = ()=> selectStudent(+b.dataset.pick));
-}
-
-// Wiring sekali (thead & pager statis, tidak di-render ulang)
-document.querySelectorAll("th.sortable").forEach(th=>{
-  th.onclick = ()=>{
-    const k = th.dataset.sort;
-    if(tbl.sortKey===k) tbl.sortDir *= -1;
-    else { tbl.sortKey = k; tbl.sortDir = 1; }
-    tbl.page = 0; renderTable();
-  };
-});
-$("tblFilter").onchange = e => { tbl.filter = e.target.value; tbl.page = 0; renderTable(); };
-$("pgPrev").onclick = ()=>{ if(tbl.page>0){ tbl.page--; renderTable(); } };
-$("pgNext").onclick = ()=>{ tbl.page++; renderTable(); };
-$("pgSize").onchange = e => { tbl.perPage = parseInt(e.target.value)||20; tbl.page = 0; renderTable(); };
-
-// ---------- Export ----------
-// Jalur utama: ExcelJS memodifikasi FILE ASLI → font/size, format angka (90,00),
-// lebar kolom, merge, dan proteksi sheet semuanya dipertahankan persis.
-$("btnExport").onclick = async () => {
-  if(!students.length) return;
-  const name = (fileName? fileName.replace(/\.[^.]+$/,"") : "nilai-mahasiswa") + "-dinilai.xlsx";
-  if(origBuffer && typeof ExcelJS !== "undefined"){
-    try{ await exportViaExcelJS(name); return; }
-    catch(err){ console.warn("Export presisi gagal, pakai mode kompatibilitas:", err); }
-  }
-  exportFallback(name); // tanpa buffer asli (sesi lama) atau file .xls: bangun ulang via SheetJS
-};
-
-async function exportViaExcelJS(name){
-  const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(origBuffer.slice(0));
-  const ws = wb.getWorksheet(origSheetName) || wb.worksheets[0];
-  if(!ws) throw new Error("Sheet tidak ditemukan di file asli.");
-  const cUts0 = students[0].cUts, cUas0 = students[0].cUas;
-  const wUts = ensureXCol(ws, cUts0, "Nilai UTS (0,00-100,00) (15%)");
-  const wUas = ensureXCol(ws, cUas0, "Nilai UAS (0,00-100) (15%)");
-  const tplUts = colTemplate(ws, wUts);
-  const tplUas = colTemplate(ws, wUas);
-  students.forEach(s=>{
-    const origUts = cUts0>=0 ? parseScore((rawRows[s.row]||[])[cUts0]) : null;
-    const origUas = cUas0>=0 ? parseScore((rawRows[s.row]||[])[cUas0]) : null;
-    if(s.uts !== origUts) setXCell(ws, s.r, wUts, s.uts, tplUts);
-    if(s.uas !== origUas) setXCell(ws, s.r, wUas, s.uas, tplUas);
-  });
-  // sinkronkan cache agar export berikutnya & perbandingan tetap akurat
-  students.forEach(s=>{
-    if(!rawRows[s.row]) rawRows[s.row] = [];
-    if(!fullAoa[s.r]) fullAoa[s.r] = [];
-    rawRows[s.row][wUts] = s.uts==null?"":s.uts;
-    rawRows[s.row][wUas] = s.uas==null?"":s.uas;
-    fullAoa[s.r][wUts] = s.uts==null?"":s.uts;
-    fullAoa[s.r][wUas] = s.uas==null?"":s.uas;
-  });
-  const buf = await wb.xlsx.writeBuffer();
-  downloadBlob(new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}), name);
-}
-
-// Cari template style kolom: sel berformat pertama di kolom itu (mis. sel kosong yg sudah diformat 0,00).
-// Kalau tidak ada, pakai font badan tabel + format 0.00.
-function colTemplate(ws, c0){
-  const col = c0 + 1;
-  for(const s of students){
-    if(s.r == null) continue;
-    const cell = ws.getRow(s.r+1).getCell(col);
-    if(cell.numFmt && cell.numFmt !== "General")
-      return {numFmt: cell.numFmt, font: {...cell.font}, alignment: {...cell.alignment}, border: {...cell.border}, protection: {...cell.protection}};
-  }
-  return {numFmt: "0.00", font: bodyFont(ws)};
-}
-
-function bodyFont(ws){
-  if(students.length && students[0].r != null){
-    const row = ws.getRow(students[0].r+1);
-    for(let c=1; c<=rawHeader.length + Object.keys(addedCols).length; c++){
-      const f = row.getCell(c).font;
-      if(f && (f.name || f.size)) return {...f};
-    }
-  }
-  return {name:"Calibri", size:11};
-}
-
-function setXCell(ws, r0, c0, val, tpl){
-  const cell = ws.getRow(r0+1).getCell(c0+1);
-  cell.value = (val==null || val==="") ? null : val;
-  if(tpl.numFmt) cell.numFmt = tpl.numFmt;
-  if(tpl.font) cell.font = tpl.font;
-  if(tpl.alignment && Object.keys(tpl.alignment).length) cell.alignment = tpl.alignment;
-  if(tpl.border && Object.keys(tpl.border).length) cell.border = tpl.border;
-  if(tpl.protection && Object.keys(tpl.protection).length) cell.protection = tpl.protection;
-}
-
-function ensureXCol(ws, cur, title){
-  if(cur>=0) return cur;
-  if(addedCols[title]!=null) return addedCols[title];
-  const nc0 = rawHeader.length + Object.keys(addedCols).length;
-  const hr = headerRowIdx + 1, nc = nc0 + 1;
-  const hcell = ws.getRow(hr).getCell(nc);
-  hcell.value = title;
-  // tiru style judul tetangga terakhir yang terisi
-  for(let c=rawHeader.length; c>=1; c--){
-    const d = ws.getRow(hr).getCell(c);
-    if(d.value!=null && d.value!==""){
-      if(d.font) hcell.font = {...d.font};
-      if(d.alignment) hcell.alignment = {...d.alignment};
-      if(d.border) hcell.border = {...d.border};
-      if(d.fill) hcell.fill = {...d.fill};
-      break;
-    }
-  }
-  ws.getColumn(nc).width = 18;
-  addedCols[title] = nc0;
-  return nc0;
-}
-
-function downloadBlob(blob, name){
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  document.body.appendChild(a); a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 800);
-}
-
-function bufToB64(buf){
-  const u = new Uint8Array(buf); let s = "";
-  for(let i=0;i<u.length;i+=0x8000){ s += String.fromCharCode.apply(null, u.subarray(i,i+0x8000)); }
-  return btoa(s);
-}
-function b64ToBuf(b64){
-  const s = atob(b64); const u = new Uint8Array(s.length);
-  for(let i=0;i<s.length;i++) u[i] = s.charCodeAt(i);
-  return u.buffer;
-}
-
-// Mode kompatibilitas: bangun ulang via SheetJS (dipakai bila tanpa buffer asli / file .xls).
-// Catatan: mode ini tidak mempertahankan font & format angka sedetail ExcelJS.
-function exportFallback(name){
-  let cUts = students[0].cUts, cUas = students[0].cUas;
-  let header = [...rawHeader];
-  if(cUts<0){ header.push("Nilai UTS (0,00-100,00) (15%)"); cUts = header.length-1; }
-  if(cUas<0){ header.push("Nilai UAS (0,00-100) (15%)"); cUas = header.length-1; }
-  const byRow = {};
-  students.forEach(s=> byRow[s.row]=s);
-  const dataPart = [header];
-  rawRows.forEach((r,idx)=>{
-    const nr = [...r];
-    while(nr.length<header.length) nr.push("");
-    const s = byRow[idx];
-    if(s){
-      nr[cUts] = s.uts==null?"":s.uts;
-      nr[cUas] = s.uas==null?"":s.uas;
-    }
-    dataPart.push(nr);
-  });
-  const width = Math.max(header.length, ...metaRows.map(r=>r.length));
-  const norm = r => { const nr=[...r]; while(nr.length<width) nr.push(""); return nr; };
-  const out = [...metaRows.map(norm), ...dataPart.map(norm)];
-  const ws2 = XLSX.utils.aoa_to_sheet(out);
-  ws2["!cols"] = computeWidths(out, origCols);
-  if(origMerges) ws2["!merges"] = origMerges;
-  const wb2 = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb2, ws2, origSheetName||"Nilai");
-  XLSX.writeFile(wb2, name);
-}
-
-function computeWidths(aoa, base){
-  const n = Math.max(...aoa.map(r=>r.length));
-  const cols = [];
-  for(let c=0;c<n;c++){
-    if(base && base[c]){ cols.push(base[c]); continue; }
-    let m = 10;
-    for(let r=0;r<aoa.length;r++){
-      const len = String(aoa[r][c]??"").length;
-      if(len>m) m = len;
-    }
-    cols.push({wch: Math.min(50, m+2)});
-  }
-  return cols;
-}
-
-// ---------- Hapus file / hapus nilai per kolom ----------
-$("btnRemoveFile").onclick = () => {
-  if(fullAoa.length===0 && !fileName){ alert("Belum ada file yang di-upload."); return; }
-  if(!confirm("Hapus file yang sudah di-upload beserta semua data?")) return;
-  fullReset();
-};
-
-function clearColumn(type){
-  if(!students.length){ alert("Belum ada data."); return; }
-  const label = type==="uts" ? "UTS" : "UAS";
-  const filled = students.filter(s=>s[type]!=null && s[type]!=="").length;
-  if(!filled){ alert("Tidak ada nilai " + label + " yang perlu dihapus."); return; }
-  if(!confirm("Hapus SEMUA nilai " + label + " (" + filled + " mahasiswa)? Kolomnya tetap ada, isinya dikosongkan.")) return;
-  pushUndo("hapus nilai " + label + " (" + filled + " mhs)",
-    students.map((s,i)=>({i, t:type, prev:s[type], next:null})).filter(c=>c.prev!=null && c.prev!==""));
-  students.forEach(s=> s[type]=null);
-  persist(); renderAll();
-  if(selectedIdx>=0) selectStudent(selectedIdx);
-  updateSearch();
-}
-$("btnClearUts").onclick = () => clearColumn("uts");
-$("btnClearUas").onclick = () => clearColumn("uas");
-
-function fullReset(){
-  students=[]; rawHeader=[]; rawRows=[]; fullAoa=[]; metaRows=[]; headerRowIdx=0;
-  selectedIdx=-1; searchList=[]; kbIdx=-1; fileName="";
-  origWb=null; origSheetName=""; origCols=null; origMerges=null; rowMap=[]; addedCols={};
-  origBuffer=null; origB64=null;
-  tbl = {sortKey:null, sortDir:1, filter:"all", page:0, perPage:20}; undoStack = [];
-  const tf = $("tblFilter"); if(tf) tf.value = "all";
-  $("fileInput").value = "";
-  localStorage.removeItem("nilai-mhs");
-  ["mapCard","gradeCard","tableCard"].forEach(id=> $(id).style.display="none");
-  $("fileInfo").textContent = "Belum ada file. Data tersimpan otomatis di browser (localStorage).";
-  $("tbody").innerHTML=""; $("searchResults").innerHTML=""; $("searchInput").value=""; $("gradeScore").value="";
-  $("foundBox").style.display="none"; $("selectedInfo").textContent = "Belum ada mahasiswa dipilih.";
-  updateUndoBtn(); updateStepper();
-}
-
-function persist(){
-  try{ localStorage.setItem("nilai-mhs", JSON.stringify({fileName, fullAoa, headerRowIdx, metaRows, rawHeader, rawRows, students, origSheetName, origCols, origMerges, origB64})); }catch(e){}
-  const ss = $("saveState");
-  if(ss) ss.textContent = students.length ? ("● Tersimpan otomatis " + new Date().toLocaleTimeString("id-ID")) : "";
-}
-(function restore(){
-  try{
-    const d = JSON.parse(localStorage.getItem("nilai-mhs")||"null");
-    if(!d) return;
-    fileName=d.fileName||""; fullAoa=d.fullAoa||[]; headerRowIdx=d.headerRowIdx||0;
-    metaRows=d.metaRows||[]; rawHeader=d.rawHeader||[]; rawRows=d.rawRows||[]; students=d.students||[];
-    origSheetName=d.origSheetName||""; origCols=d.origCols||null; origMerges=d.origMerges||null;
-    origB64=d.origB64||null; origBuffer=null;
-    if(origB64){ try{ origBuffer=b64ToBuf(origB64); }catch(_){ origBuffer=null; } }
-    // kompatibilitas data lama (sebelum ada deteksi header): rekonstruksi fullAoa
-    if(!fullAoa.length && rawHeader.length){ fullAoa=[rawHeader,...rawRows]; headerRowIdx=0; metaRows=[]; }
-    if(rawHeader.length){
-      buildHeaderRowSel(); buildMappingUI(); $("mapCard").style.display="block";
-      $("fileInfo").textContent = "File: " + (fileName||"(tanpa nama)") + " | " + rawRows.length + " baris.";
-    }
-    if(students.length){
-      $("gradeCard").style.display="block"; $("tableCard").style.display="block";
-      $("fileInfo").textContent = "Data dipulihkan dari sesi sebelumnya ("+students.length+" mahasiswa).";
-      renderAll();
-    }
-  }catch(e){}
-})();
-</script>
-</body>
+			// Ringkasan data tersimpan per tool
+			try {
+				const p = JSON.parse(localStorage.getItem("nilai-mhs") || "null");
+				if (p && p.students && p.students.length) {
+					const nComp = (p.components || []).length;
+					document.getElementById("statPenilaian").textContent =
+						"💾 " +
+						p.students.length +
+						" mahasiswa" +
+						(nComp ? " • " + nComp + " komponen" : "") +
+						(p.fileName ? " • " + p.fileName : "");
+				}
+			} catch (_) {}
+			try {
+				const o = JSON.parse(localStorage.getItem("obe-analisis") || "null");
+				if (o && o.students && o.students.length) {
+					document.getElementById("statObe").textContent =
+						"💾 " +
+						o.students.length +
+						" mahasiswa • " +
+						(o.components || []).length +
+						" komponen" +
+						(o.fileName ? " • " + o.fileName : "");
+				}
+			} catch (_) {}
+		</script>
+	</body>
 </html>

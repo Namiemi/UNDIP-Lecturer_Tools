@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="id">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Penilaian Mahasiswa</title>
+		<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="container">
+			<div class="topbar">
+				<a class="btn btn-dark" href="index.html" title="Kembali ke Dashboard">
+					← Dashboard
+				</a>
+				<h1>📝 Penilaian Mahasiswa</h1>
+				<button class="btn btn-dark" id="btnTheme" title="Mode gelap / terang">
+					🌙
+				</button>
+			</div>
+			<p class="subtitle">
+				Upload Excel → Petakan kolom → Cari by Nama/NIM → Nilai → Download Excel
+			</p>
+			<div class="stepper" id="stepper">
+				<div class="step" data-s="1">
+					<i>1</i>
+					<span>Upload</span>
+				</div>
+				<div class="sep"></div>
+				<div class="step" data-s="2">
+					<i>2</i>
+					<span>Pemetaan</span>
+				</div>
+				<div class="sep"></div>
+				<div class="step" data-s="3">
+					<i>3</i>
+					<span>Nilai</span>
+				</div>
+				<div class="sep"></div>
+				<div class="step" data-s="4">
+					<i>4</i>
+					<span>Download</span>
+				</div>
+			</div>
+
+			<!-- STEP 1 -->
+			<div class="card">
+				<h2>
+					<span class="step-badge">1</span>
+					Upload File Excel
+				</h2>
+				<div class="drop" id="dropZone">
+					<p>
+						<b>Klik / drag file ke sini</b>
+						(.xlsx, .xls, .csv)
+					</p>
+					<input
+						type="file"
+						id="fileInput"
+						accept=".xlsx,.xls,.csv"
+						style="display: none"
+					/>
+				</div>
+				<button
+					class="btn btn-red"
+					id="btnRemoveFile"
+					style="width: 100%; margin-top: 12px"
+				>
+					🗑 Hapus File Upload
+				</button>
+				<p class="hint" id="fileInfo">
+					Belum ada file. Data tersimpan otomatis di browser (localStorage).
+				</p>
+			</div>
+
+			<!-- STEP 2 -->
+			<div class="card" id="mapCard" style="display: none">
+				<h2>
+					<span class="step-badge">2</span>
+					Pemetaan Kolom (karena format Excel bisa beda)
+				</h2>
+				<p class="hint" id="headerInfo">
+					Mendeteksi baris header otomatis (melewati info Mata Kuliah / Tahun
+					Ajaran di atas).
+				</p>
+				<div class="row">
+					<div class="col">
+						<label>Baris header (judul kolom)</label>
+						<select id="headerRowSel"></select>
+						<p class="hint" id="headerPreview"></p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col">
+						<label>Kolom Nama</label>
+						<select id="mapNama"></select>
+					</div>
+					<div class="col">
+						<label>Kolom NIM</label>
+						<select id="mapNim"></select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col">
+						<label>Komponen Nilai (3 kolom)</label>
+						<p class="hint">
+							Tetapkan 3 komponen — contoh: Tugas, Kuis, UTS, UAS, Praktikum.
+							Nama komponen terisi otomatis mengikuti kolom yang dipilih (boleh
+							diketik ulang). Pilih kolom Excel yang sudah ada, atau buat kolom
+							baru.
+						</p>
+						<div id="gradeMapList"></div>
+					</div>
+				</div>
+				<button
+					class="btn btn-primary"
+					id="btnApplyMap"
+					style="margin-top: 14px"
+				>
+					Terapkan Pemetaan ✓
+				</button>
+				<p class="hint" id="mapInfo"></p>
+			</div>
+
+			<!-- STEP 3 -->
+			<div class="card" id="gradeCard" style="display: none">
+				<h2>
+					<span class="step-badge">3</span>
+					Cari &amp; Nilai Mahasiswa
+				</h2>
+				<div class="row">
+					<div class="col">
+						<label>
+							Cari Nama / NIM
+							<span class="hint" style="font-weight: 400">
+								(tekan
+								<kbd>/</kbd>
+								untuk fokus)
+							</span>
+						</label>
+						<input
+							type="text"
+							id="searchInput"
+							placeholder="cth: Abhista / 24060124130058"
+							autocomplete="off"
+						/>
+						<p class="hint">
+							<kbd>↑</kbd>
+							<kbd>↓</kbd>
+							navigasi •
+							<kbd>Enter</kbd>
+							pilih •
+							<kbd>Esc</kbd>
+							bersihkan
+						</p>
+						<div id="searchResults"></div>
+					</div>
+					<div class="col">
+						<label>Komponen Nilai</label>
+						<select id="gradeType"></select>
+						<p class="hint">
+							Pintas:
+							<kbd>Alt</kbd>
+							+
+							<kbd>1</kbd>
+							…
+							<kbd>9</kbd>
+							ganti komponen
+						</p>
+						<label>Skor (0–100)</label>
+						<input
+							type="number"
+							id="gradeScore"
+							min="0"
+							max="100"
+							step="any"
+							placeholder="cth: 85"
+						/>
+						<button
+							class="btn btn-primary"
+							id="btnSaveGrade"
+							style="width: 100%; margin-top: 12px"
+						>
+							💾 Simpan Nilai
+						</button>
+						<p class="hint" id="selectedInfo">Belum ada mahasiswa dipilih.</p>
+					</div>
+				</div>
+				<div class="student-found" id="foundBox" style="display: none">
+					<h3 id="foundName">-</h3>
+					<p id="foundNim" style="color: #555; font-size: 14px">-</p>
+					<p style="margin-top: 8px" id="foundGrades"></p>
+				</div>
+				<div class="stat" id="statRow">
+					<div>
+						<b id="statTotal">0</b>
+						<span>Mahasiswa</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- STEP 4 -->
+			<div class="card" id="tableCard" style="display: none">
+				<h2>
+					<span class="step-badge">4</span>
+					Data &amp; Simpan ke Excel
+				</h2>
+				<div class="row">
+					<div class="col">
+						<button class="btn btn-green" id="btnExport" style="width: 100%">
+							📥 Download Excel (hasil nilai)
+						</button>
+					</div>
+				</div>
+				<div class="row" id="clearBtns" style="margin-top: 10px"></div>
+				<div class="toolbar">
+					<select id="tblFilter" title="Filter baris"></select>
+					<button
+						class="btn btn-dark"
+						id="btnUndo"
+						disabled
+						title="Belum ada perubahan"
+					>
+						↩ Urungkan
+					</button>
+					<span class="save-state" id="saveState"></span>
+				</div>
+				<p class="hint">
+					Semua perubahan bisa dibatalkan via tombol /
+					<kbd>Ctrl</kbd>
+					+
+					<kbd>Z</kbd>
+					• klik judul kolom untuk sortir.
+				</p>
+				<div class="table-wrap">
+					<table>
+						<thead>
+							<tr id="theadRow"></tr>
+						</thead>
+						<tbody id="tbody"></tbody>
+					</table>
+				</div>
+				<div class="pager">
+					<button class="btn btn-dark" id="pgPrev">‹</button>
+					<span class="hint" id="pgInfo"></span>
+					<button class="btn btn-dark" id="pgNext">›</button>
+					<select id="pgSize" title="Baris per halaman">
+						<option>10</option>
+						<option selected>20</option>
+						<option>50</option>
+						<option>100</option>
+					</select>
+				</div>
+				<!-- <p class="info" >
+					Nilai bisa diedit langsung di tabel — otomatis tersimpan. Klik “Pilih”
+					untuk memuat ke form penilaian di atas.
+					<br />
+					Download mempertahankan font, format angka (90,00), lebar kolom &amp;
+					proteksi sheet dari file asli.
+				</p> -->
+			</div>
+		</div>
+
+		<script src="penilaian.js" defer></script>
+	</body>
+</html>

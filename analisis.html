@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="id">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Analisis Penilaian OBE</title>
+		<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="container">
+			<div class="topbar">
+				<a class="btn btn-dark" href="index.html" title="Kembali ke Dashboard">
+					← Dashboard
+				</a>
+				<h1>📊 Analisis Penilaian OBE</h1>
+				<button class="btn btn-dark" id="btnTheme" title="Mode gelap / terang">
+					🌙
+				</button>
+			</div>
+			<p class="subtitle">
+				Upload Excel nilai → Grafik &amp; distribusi grade otomatis → Download
+				Excel
+			</p>
+
+			<!-- 1. UPLOAD (sama persis seperti tool Penilaian) -->
+			<div class="card">
+				<h2>
+					<span class="step-badge">1</span>
+					Upload File Excel
+				</h2>
+				<div class="drop" id="dropZone">
+					<p>
+						<b>Klik / drag file ke sini</b>
+						(.xlsx, .xls, .csv)
+					</p>
+					<input
+						type="file"
+						id="fileInput"
+						accept=".xlsx,.xls,.csv"
+						style="display: none"
+					/>
+				</div>
+				<button
+					class="btn btn-red"
+					id="btnRemoveFile"
+					style="width: 100%; margin-top: 12px"
+				>
+					🗑 Hapus File Upload
+				</button>
+				<p class="hint" id="fileInfo">
+					Belum ada file. Data tersimpan otomatis di browser (localStorage).
+				</p>
+			</div>
+
+			<!-- 2. GRAFIK -->
+			<div class="card" id="chartCard" style="display: none">
+				<h2>
+					<span class="step-badge">2</span>
+					Grafik Nilai Akhir
+				</h2>
+				<div class="seg-group">
+					<button class="btn btn-dark seg-btn" id="segHuruf" type="button">
+						Berdasarkan Grade (Huruf)
+					</button>
+					<button class="btn btn-dark seg-btn" id="segAngka" type="button">
+						Berdasarkan Skor (Angka)
+					</button>
+				</div>
+				<p class="hint" id="chartSummary"></p>
+				<div id="chartBox" class="bars"></div>
+			</div>
+
+			<!-- 3. DISTRIBUSI GRADE -->
+			<div class="card" id="distCard" style="display: none">
+				<h2>
+					<span class="step-badge">3</span>
+					Distribusi Grade
+				</h2>
+				<div class="table-wrap" style="max-width: 900px">
+					<table>
+						<thead>
+							<tr>
+								<th>Grade</th>
+								<th>Rentang Skor</th>
+								<th>Jumlah</th>
+								<th>Persentase</th>
+							</tr>
+						</thead>
+						<tbody id="distBody"></tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- 4. EXPORT -->
+			<div class="card" id="exportCard" style="display: none">
+				<h2>
+					<span class="step-badge">4</span>
+					Simpan ke Excel
+				</h2>
+				<button class="btn btn-green" id="btnExport" style="width: 100%">
+					📥 Download Excel Analisis
+				</button>
+				<p class="info">
+					Sheet 1: Rekap (NIM, Nama, Nilai Akhir Angka/Huruf) • Sheet 2:
+					Distribusi Grade.
+				</p>
+			</div>
+		</div>
+
+		<script src="analisis.js" defer></script>
+	</body>
+</html>
